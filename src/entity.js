@@ -9,6 +9,8 @@ class Entity{
         this.color = color;
         this.radius = radius
         this.isStatic = isStatic;
+        
+        this.exists = true
     }
     
     render(ctx){
@@ -16,12 +18,11 @@ class Entity{
         ctx.arc(this.pos.x, this.pos.y, this.radius,0, 2 * Math.PI, false);
         ctx.fillStyle = this.color;
         ctx.fill();
-        ctx.closePath();
-        
+        ctx.closePath();   
     }
     
     applyForce(force){
-        if(Utils.getAbs(force) >Physics.MAX_FORCE ) force = Utils.setAbs(force,Physics.MAX_FORCE);
+        if(this.mass == 0) return;
         this.acc.x += force.x/this.mass;
         this.acc.y += force.y/this.mass;
     }
@@ -50,20 +51,47 @@ class Entity{
         }
     }
     
-    static randomParticles( numberOfEntities , spawnArea = {x0: 0, x1: canvas.width, y0: 0, y1: canvas.height}){
+    isColliding(e1){
+        let diff = {x: this.pos.x-e1.pos.x, y: this.pos.y-e1.pos.y}
+        return( Utiles.getAbs(diff) < this.radius+e1.radius)
+    }
+    
+    resolveCollision(e1){
+        
+    }
+    
+    
+    static randomElectronsAndProtons( amount , spawnArea = {x0: 0, x1: canvas.width, y0: 0, y1: canvas.height}, prob = 0.5){
         var ents = []
-        for(let i=0;i<numberOfEntities;i++){
+        for(let i=0;i<amount;i++){
             let pos = {x: spawnArea.x0 + Math.random()*(spawnArea.x1-spawnArea.x0),y: spawnArea.y0 + Math.random()*(spawnArea.y1-spawnArea.y0)};
             let vel = {x: Math.random()*100-50,y: Math.random()*100-50};
-            let charge = Math.random() > 0.01 ? 1:-1;
-            let color;
-            if(charge==1) color = "#FF0000";
-            else color = "#0000FF";
-            ents.push(new Entity(pos,vel,1,charge,color));
+            let e1 = Math.random() > prob ? new Electron(pos,vel):new Proton(pos,vel);
+            ents.push(e1);
         }
         return ents;
     }
-    
+
 }
+
+class Electron extends Entity{ 
+    constructor(pos = {x:0,y:0}, vel = {x:0,y:0}) {
+        super(pos,vel,1,-1,"#0000FF",5);
+    }
+}
+
+class Proton extends Entity{
+    constructor(pos = {x:0,y:0}, vel = {x:0,y:0}) {
+        super(pos,vel,1,1,"#FF0000",5);
+    }
+}
+
+class Photon extends Entity{
+    constructor(pos = {x:0,y:0}, vel = {x:0,y:0}) {
+        super(pos,vel,0,0,"#FFFF00",3);
+    }
+}
+
+
 
 
