@@ -1,7 +1,7 @@
 class Physics{
     
     static get G(){
-        return 50000;
+        return 10000;
     }
     
     static get C(){
@@ -9,7 +9,7 @@ class Physics{
     }
     
     static get DRAG(){
-        return 0.005;
+        return 0.001;
     }
     
     static get MAX_VEL(){
