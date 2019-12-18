@@ -10,7 +10,7 @@ const panel_physics_c = document.getElementById("panel_physics_c");
 const input_physics_c = document.getElementById("input_physics_c");
 
 var entities = [];
-entities.push(...Entity.randomElectronsAndProtons(400,{x0:canvas.width/4,x1:canvas.width*3/4,y0:canvas.height/4,y1:canvas.height*3/4}, 0.01 ));
+entities.push(...Entity.randomElectronsAndProtons(400,{x0:canvas.width/4,x1:canvas.width*3/4,y0:canvas.height/4,y1:canvas.height*3/4}, 0.5 ));
 //entities.push(Entity.BlackHole({x: canvas.width/2, y: canvas.height/2}, 1000))
 
 canvas.addEventListener('click', (e) => {
@@ -22,6 +22,7 @@ canvas.addEventListener('click', (e) => {
 });
 
 function update(progress) {
+	let newEntities = []
     //apply Forces
     for(let i=0; i<entities.length;i++){
         for(let j=0; j<entities.length;j++){
@@ -31,14 +32,26 @@ function update(progress) {
                 // Drag
                 entities[i].applyForce(Physics.getDragForce(entities[i]));
                 // Constant Force
-                //entities[i].applyForce({x:0,y:-1});
+                //entities[i].applyForce({x:0,y:1});
+                
+                //Collision
+                if(!entities[i].isAnnihilated && !entities[j].isAnnihilated && Physics.areColliding(entities[i],entities[j])){
+                	newEntities.push(...Physics.resolveCollision(entities[i],entities[j]));
+                }
+                
             }
         }
+        
+        if(!entities[i].isAnnihilated) newEntities.push(entities[i]);
     }
     //update Positions
     for(let i=0; i<entities.length;i++){
-        entities[i].updatePosition(progress,{x0: 0, x1: canvas.width, y0: 0, y1: canvas.height, wrap: false });
+    	if(!entities[i].isAnnihilated){ 
+    		entities[i].updatePosition(progress,{x0: 10, x1: canvas.width-10, y0: 10, y1: canvas.height-10, wrap: false });
+    	}   
     }
+    //add new Entities
+    entities = newEntities
 }
 
 function draw() {

@@ -1,5 +1,5 @@
 class Entity{
-    
+	
     constructor( pos = {x:0,y:0}, vel = {x:0,y:0}, mass = 1, charge = 1, color = "#FFFFFF", radius = 5, isStatic = false) {
         this.pos = pos;
         this.vel = vel;
@@ -10,7 +10,7 @@ class Entity{
         this.radius = radius
         this.isStatic = isStatic;
         
-        this.exists = true
+        this.isAnnihilated = false;
     }
     
     render(ctx){
@@ -29,8 +29,9 @@ class Entity{
     
     updatePosition(deltaTime, spaceCtx = null){
         if(this.isStatic) return;
-        this.pos.x = this.pos.x + this.vel.x * deltaTime + 0.5* this.acc.x * deltaTime * deltaTime;
-        this.pos.y = this.pos.y + this.vel.y * deltaTime + 0.5* this.acc.y * deltaTime * deltaTime;
+        if(Utils.getAbs(this.vel) > Physics.MAX_VEL) Utils.setAbs(this.vel,Physics.MAX_VEL);
+        this.pos.x = this.pos.x + this.vel.x * deltaTime + 0.5 * this.acc.x * deltaTime * deltaTime;
+        this.pos.y = this.pos.y + this.vel.y * deltaTime + 0.5 * this.acc.y * deltaTime * deltaTime;
         this.vel.x = this.vel.x + this.acc.x * deltaTime;
         this.vel.y = this.vel.y + this.acc.y * deltaTime;
         this.acc.x = 0;
@@ -49,17 +50,7 @@ class Entity{
                 if(this.pos.y  - this.radius < spaceCtx.y0 || this.pos.y  + this.radius >= spaceCtx.y1) this.vel.y = -this.vel.y;
             }
         }
-    }
-    
-    isColliding(e1){
-        let diff = {x: this.pos.x-e1.pos.x, y: this.pos.y-e1.pos.y}
-        return( Utiles.getAbs(diff) < this.radius+e1.radius)
-    }
-    
-    resolveCollision(e1){
-        
-    }
-    
+    }   
     
     static randomElectronsAndProtons( amount , spawnArea = {x0: 0, x1: canvas.width, y0: 0, y1: canvas.height}, prob = 0.5){
         var ents = []
@@ -86,9 +77,16 @@ class Proton extends Entity{
     }
 }
 
+class Neutron extends Entity{
+    constructor(pos = {x:0,y:0}, vel = {x:0,y:0}) {
+        super(pos,vel,1,0,"#00FF00",5);
+    }
+}
+
 class Photon extends Entity{
     constructor(pos = {x:0,y:0}, vel = {x:0,y:0}) {
-        super(pos,vel,0,0,"#FFFF00",3);
+    	vel = Utils.setAbs(vel, Physics.MAX_VEL);
+        super(pos,vel,0,0,"#FFFF00",2);
     }
 }
 
