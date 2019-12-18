@@ -5,7 +5,7 @@ class Physics{
     }
     
     static get C(){
-        return 500000;
+        return 100000;
     }
     
     static get DRAG(){
