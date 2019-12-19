@@ -6,7 +6,7 @@ ctx.fillStyle = "black";
 ctx.fillRect(0,0,canvas.width, canvas.height);
 
 var particles = [];
-particles.push(...Particle.randomParticles(200,{x0:canvas.width/4,x1:canvas.width*3/4,y0:canvas.height/4,y1:canvas.height*3/4}, 0.5 ));
+particles.push(...Particle.randomParticles(400,{x0:canvas.width/4,x1:canvas.width*3/4,y0:canvas.height/4,y1:canvas.height*3/4}, 0.5 ));
 
 function update(progress) {
 	let nextParticles = []

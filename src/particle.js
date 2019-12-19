@@ -1,16 +1,14 @@
-const COLORS = ["#FF0000","#00FF00","#0000FF","#FFFF00","#00FFFF"]
-
 class Particle{
 	
-    constructor( pos = {x:0,y:0}, vel = {x:0,y:0}, mass = 1, radius = 5, type = 0,color = "#FFFFFF", isStatic = false) {
+    constructor( pos = {x:0,y:0}, vel = {x:0,y:0}, mass = 1, charge = 1, radius = 5, color = "#FFFFFF", isStatic = false) {
         this.pos = pos;
         this.vel = vel;
         this.acc = {x:0, y: 0};
         this.mass = mass;
+        this.charge = charge;
         this.color = color;
         this.radius = radius
         this.isStatic = isStatic;
-        this.type = type;
         
         this.isAnnihilated = false;
     }
@@ -71,12 +69,14 @@ class Particle{
         for(let i=0;i<amount;i++){
             let pos = {x: spawnArea.x0 + Math.random()*(spawnArea.x1-spawnArea.x0),y: spawnArea.y0 + Math.random()*(spawnArea.y1-spawnArea.y0)};
             let vel = {x: Math.random()*100-50,y: Math.random()*100-50};
-            let dice = Math.random();
-            let mass = 1+dice*2;
-            let radius = 4+dice*4;
-            let type = Math.floor(Math.random()*5)
-            let color = COLORS[type];
-            particles.push(new Particle(pos,vel,mass, radius, type, color));
+            let dice1 = Math.random();
+            let mass = 1+dice1*2;
+            let radius = 4+dice1*4;
+            let dice2 = Math.random();
+            let charge = Math.floor(3-dice2*6);
+            let color = "rgb("+(dice2*255).toString()+",0,"+(255-dice2*255).toString()+")";
+            console.log(color);
+            particles.push(new Particle(pos,vel,mass, charge, radius, color));
         }
         return particles;
     }
