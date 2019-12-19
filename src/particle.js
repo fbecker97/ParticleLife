@@ -1,14 +1,16 @@
-class Entity{
+const COLORS = ["#FF0000","#00FF00","#0000FF","#FFFF00","#00FFFF"]
+
+class Particle{
 	
-    constructor( pos = {x:0,y:0}, vel = {x:0,y:0}, mass = 1, charge = 1, color = "#FFFFFF", radius = 5, isStatic = false) {
+    constructor( pos = {x:0,y:0}, vel = {x:0,y:0}, mass = 1, radius = 5, type = 0,color = "#FFFFFF", isStatic = false) {
         this.pos = pos;
         this.vel = vel;
         this.acc = {x:0, y: 0};
         this.mass = mass;
-        this.charge = charge;
         this.color = color;
         this.radius = radius
         this.isStatic = isStatic;
+        this.type = type;
         
         this.isAnnihilated = false;
     }
@@ -29,7 +31,7 @@ class Entity{
     
     updatePosition(deltaTime, spaceCtx = null){
         if(this.isStatic) return;
-        if(Utils.getAbs(this.vel) > Physics.MAX_VEL) Utils.setAbs(this.vel,Physics.MAX_VEL);
+        if(Utils.getAbs(this.vel) > Physics.MAX_VEL) this.vel = Utils.setAbs(this.vel,Physics.MAX_VEL);
         this.pos.x = this.pos.x + this.vel.x * deltaTime + 0.5 * this.acc.x * deltaTime * deltaTime;
         this.pos.y = this.pos.y + this.vel.y * deltaTime + 0.5 * this.acc.y * deltaTime * deltaTime;
         this.vel.x = this.vel.x + this.acc.x * deltaTime;
@@ -42,52 +44,43 @@ class Entity{
                 let spaceWidth = spaceCtx.x1 - spaceCtx.x0;
                 let spaceHeight = spaceCtx.y1 - spaceCtx.y0;
                 if(this.pos.x < spaceCtx.x0) this.pos.x += spaceWidth;
-                if(this.pos.x >= spaceCtx.x1) this.pos.x -= spaceWidth;
+                else if(this.pos.x >= spaceCtx.x1) this.pos.x -= spaceWidth;
                 if(this.pos.y < spaceCtx.y0) this.pos.y += spaceHeight;
-                if(this.pos.y >= spaceCtx.y1) this.pos.y -= spaceHeight;
+                else if(this.pos.y >= spaceCtx.y1) this.pos.y -= spaceHeight;
             } else {
-                if(this.pos.x  - this.radius < spaceCtx.x0 || this.pos.x  + this.radius >= spaceCtx.x1) this.vel.x = -this.vel.x;
-                if(this.pos.y  - this.radius < spaceCtx.y0 || this.pos.y  + this.radius >= spaceCtx.y1) this.vel.y = -this.vel.y;
+                if(this.pos.x  - this.radius < spaceCtx.x0 ) {
+                	this.pos.x = spaceCtx.x0+this.radius
+                	this.vel.x = -this.vel.x;
+                } else if( this.pos.x  + this.radius >= spaceCtx.x1) {
+                	this.pos.x = spaceCtx.x1-this.radius
+                	this.vel.x = -this.vel.x;
+                }
+                if(this.pos.y  - this.radius < spaceCtx.y0 ) {
+                	this.pos.y = spaceCtx.y0+this.radius
+                	this.vel.y = -this.vel.y;
+                } else if( this.pos.y  + this.radius >= spaceCtx.y1) {
+                	this.pos.y = spaceCtx.y1-this.radius
+                	this.vel.y = -this.vel.y;
+                }
             }
         }
     }   
     
-    static randomElectronsAndProtons( amount , spawnArea = {x0: 0, x1: canvas.width, y0: 0, y1: canvas.height}, prob = 0.5){
-        var ents = []
+    static randomParticles( amount , spawnArea = {x0: 0, x1: canvas.width, y0: 0, y1: canvas.height}, prob = 0.5){
+        var particles = []
         for(let i=0;i<amount;i++){
             let pos = {x: spawnArea.x0 + Math.random()*(spawnArea.x1-spawnArea.x0),y: spawnArea.y0 + Math.random()*(spawnArea.y1-spawnArea.y0)};
             let vel = {x: Math.random()*100-50,y: Math.random()*100-50};
-            let e1 = Math.random() > prob ? new Electron(pos,vel):new Proton(pos,vel);
-            ents.push(e1);
+            let dice = Math.random();
+            let mass = 1+dice*2;
+            let radius = 4+dice*4;
+            let type = Math.floor(Math.random()*5)
+            let color = COLORS[type];
+            particles.push(new Particle(pos,vel,mass, radius, type, color));
         }
-        return ents;
+        return particles;
     }
 
-}
-
-class Electron extends Entity{ 
-    constructor(pos = {x:0,y:0}, vel = {x:0,y:0}) {
-        super(pos,vel,1,-1,"#0000FF",5);
-    }
-}
-
-class Proton extends Entity{
-    constructor(pos = {x:0,y:0}, vel = {x:0,y:0}) {
-        super(pos,vel,1,1,"#FF0000",5);
-    }
-}
-
-class Neutron extends Entity{
-    constructor(pos = {x:0,y:0}, vel = {x:0,y:0}) {
-        super(pos,vel,1,0,"#00FF00",5);
-    }
-}
-
-class Photon extends Entity{
-    constructor(pos = {x:0,y:0}, vel = {x:0,y:0}) {
-    	vel = Utils.setAbs(vel, Physics.MAX_VEL);
-        super(pos,vel,0,0,"#FFFF00",2);
-    }
 }
 
 

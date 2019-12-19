@@ -1,75 +1,71 @@
 class Physics{
     
     static get G(){
-        return 10000;
-    }
-    
-    static get C(){
-        return 100000;
+        return 60000;
     }
     
     static get DRAG(){
-        return 0.001;
+        return 0.01;
     }
     
     static get MAX_VEL(){
-    	return 1000;
+    	return 500;
     }
+    
+    static force(p1,p2){
+    	let diff = {x: p1.pos.x-p2.pos.x, y: p1.pos.y-p2.pos.y}
+    	let dist = Math.max(Utils.getAbs(diff),p1.radius+p2.radius);
+    	let force_factor = Physics.resolveAttraction(p1.type,p2.type)*Physics.G*p1.mass*p2.mass/(dist*dist*dist)
 
-    static getGravitationalForce(e1,e2){
-        let diff = {x: e1.pos.x-e2.pos.x, y: e1.pos.y-e2.pos.y}
-        let dist = Math.max(Utils.getAbs(diff),e1.radius+e2.radius);   
-        let force_factor = Physics.G * e1.mass * e2.mass/(dist*dist*dist)
-        return {x: -diff.x*force_factor, y: -diff.y*force_factor}
+    	return {x: diff.x*force_factor, y: diff.y*force_factor}
     }
     
-    static getElectricForce(e1,e2){
-        let diff = {x: e1.pos.x-e2.pos.x, y: e1.pos.y-e2.pos.y}
-        let dist = Math.max(Utils.getAbs(diff),e1.radius+e2.radius);    
-        let force_factor = Physics.C * e1.charge * e2.charge/(dist*dist*dist)
-        return {x: diff.x*force_factor, y: diff.y*force_factor}
+    static drag(p1){
+        return {x: -p1.vel.x*Physics.DRAG, y: -p1.vel.y*Physics.DRAG }
     }
     
-    static getForceBetween(e1, e2){
-        let gravitationalForce = Physics.getGravitationalForce(e1,e2);
-        let electricForce = Physics.getElectricForce(e1,e2);
-        return {x: gravitationalForce.x+electricForce.x, y: gravitationalForce.y+electricForce.y}
+    static resolveAttraction(type1, type2){
+    	if(type1 == 0){
+    		if(type2 == 1) return -1;
+    		else return 1;
+    	}
+    	else if(type1 == 1){
+    		if(type2 == 2 ) return -1;
+    		else return 1;
+    	}
+    	else if(type1 == 2){
+    		if(type2 == 3 ) return -1;
+    		else return 1;
+    	}
+    	else if(type1 == 3){
+    		if(type2 == 4 ) return -1;
+    		else return 1;
+    	}
+    	else if(type1 == 4){
+    		if(type2 == 0 ) return -1;
+    		else return 1;
+    	}
     }
     
-    static getDragForce(e1){
-        return {x: -e1.vel.x*Physics.DRAG, y: -e1.vel.y*Physics.DRAG }
+    static areColliding(p1, p2){
+        let diff = {x: p1.pos.x-p2.pos.x, y: p1.pos.y-p2.pos.y}
+        return( Utils.getAbs(diff) < p1.radius+p2.radius)
     }
     
-    static areColliding(e1, e2){
-        let diff = {x: e1.pos.x-e2.pos.x, y: e1.pos.y-e2.pos.y}
-        return( Utils.getAbs(diff) < e1.radius+e2.radius)
-    }
-    
-    static resolveCollision(e1, e2){
+    static resolveCollision(p1, p2){
+    	
     	let result = []
-    	if(e1.constructor.name == "Proton" && e2.constructor.name == "Electron" || e2.constructor.name == "Proton" && e1.constructor.name == "Electron"){
-    		let dice = Math.random();
-    		if(dice < 0.001){
-	    		e1.isAnnihilated = true;
-	    		e2.isAnnihilated = true;
-	    		let vel_photon = {x: e1.vel.x-e2.vel.x, y: e1.vel.y-e2.vel.y}
-	    		let vel_neutron = {x: (e2.vel.x-e1.vel.x)*0.9, y: (e2.vel.y-e1.vel.y)*0.9}
-	    		result.push(new Photon(e1.pos,vel_photon), new Neutron(e2.pos, vel_neutron))
-	    	}
+    	
+    	if((p1.type+1)%5 == p2.type ){
+    		p2.isAnnihilated = true;
+    		p1.mass += p2.mass;
+    		p1.radius++;
+    	} else if ((p2.type+1)%5 == p1.type){
+    		p1.isAnnihilated = true;
+    		p2.mass += p1.mass;
+    		p2.radius++;
     	}
-    	if(e1.constructor.name == "Photon" || e2.constructor.name == "Photon"){
-    		if(Math.random() < 0.5){
-	    		if(e1.constructor.name == "Photon") {
-	    			e1.isAnnihilated = true;
-	    			e2.vel = Utils.setAbs(e2.vel, Physics.MAX_VEL/e2.mass);
-	    		}
-	    		else {
-	    			e2.isAnnihilated = true;
-	    			e1.vel = Utils.setAbs(e1.vel, Physics.MAX_VEL/e1.mass);
-	    		}
-	    		
-	    	}
-    	}
+    	
     	return result;
     }
     
