@@ -1,6 +1,6 @@
 class Particle{
 	
-    constructor( pos = {x:0,y:0}, vel = {x:0,y:0}, mass = 1, charge = 1, radius = 5, color = "#FFFFFF", isStatic = false) {
+    constructor( pos = {x:0,y:0}, vel = {x:0,y:0}, mass = 1, charge = [0,0,0], radius = 5, color = "#FFFFFF", immovable = false ) {
         this.pos = pos;
         this.vel = vel;
         this.acc = {x:0, y: 0};
@@ -8,32 +8,48 @@ class Particle{
         this.charge = charge;
         this.color = color;
         this.radius = radius
-        this.isStatic = isStatic;
+        this.immovable = immovable;
         
         this.isAnnihilated = false;
+        this.lastAcc = {x:0,y:0}
     }
     
-    render(ctx){
+    render(ctx , drawAcc = false){
         ctx.beginPath();
         ctx.arc(this.pos.x, this.pos.y, this.radius,0, 2 * Math.PI, false);
         ctx.fillStyle = this.color;
         ctx.fill();
-        ctx.closePath();   
+        ctx.closePath();
+        
+        if(drawAcc){
+            let acc_abs = Utils.getAbs(this.lastAcc)
+            if(acc_abs != 0){
+                let a = (1-Math.exp(-0.001*acc_abs))*40/acc_abs
+                ctx.beginPath();
+                ctx.moveTo(this.pos.x,this.pos.y);
+                ctx.lineTo(this.pos.x+this.lastAcc.x*a,this.pos.y+this.lastAcc.y*a);
+                ctx.strokeStyle = "white";
+                ctx.stroke();
+            } 
+        }
+        
     }
     
     applyForce(force){
         if(this.mass == 0) return;
         this.acc.x += force.x/this.mass;
         this.acc.y += force.y/this.mass;
+        
+        this.lastAcc = {x: this.acc.x, y: this.acc.y}
     }
     
     updatePosition(deltaTime, spaceCtx = null){
+        
         if(this.isStatic) return;
-        if(Utils.getAbs(this.vel) > Physics.MAX_VEL) this.vel = Utils.setAbs(this.vel,Physics.MAX_VEL);
-        this.pos.x = this.pos.x + this.vel.x * deltaTime + 0.5 * this.acc.x * deltaTime * deltaTime;
-        this.pos.y = this.pos.y + this.vel.y * deltaTime + 0.5 * this.acc.y * deltaTime * deltaTime;
-        this.vel.x = this.vel.x + this.acc.x * deltaTime;
-        this.vel.y = this.vel.y + this.acc.y * deltaTime;
+        this.pos.x = this.pos.x + this.vel.x * deltaTime +  0.5*this.acc.x * deltaTime*deltaTime
+        this.pos.y = this.pos.y + this.vel.y * deltaTime +  0.5*this.acc.x * deltaTime*deltaTime
+        this.vel.x = this.vel.x + this.acc.x * deltaTime
+        this.vel.y = this.vel.y + this.acc.y * deltaTime
         this.acc.x = 0;
         this.acc.y = 0;
         
@@ -66,18 +82,18 @@ class Particle{
     
     static randomParticles( amount , spawnArea = {x0: 0, x1: canvas.width, y0: 0, y1: canvas.height}, prob = 0.5){
         var particles = []
+        
         for(let i=0;i<amount;i++){
             let pos = {x: spawnArea.x0 + Math.random()*(spawnArea.x1-spawnArea.x0),y: spawnArea.y0 + Math.random()*(spawnArea.y1-spawnArea.y0)};
-            let vel = {x: Math.random()*100-50,y: Math.random()*100-50};
-            let dice1 = Math.random();
-            let mass = 1+dice1*2;
-            let radius = 4+dice1*4;
-            let dice2 = Math.random();
-            let charge = Math.floor(3-dice2*6);
-            let color = "rgb("+(dice2*255).toString()+",0,"+(255-dice2*255).toString()+")";
-            console.log(color);
+            let vel = {x:0,y:0}//{x: Math.random()*100-50,y: Math.random()*100-50};
+            let radius = 4;
+            let charge = (Math.random() < prob) ? [-1,1,0]:[1,1,0];
+            let mass = 1
+            let color = Physics.getColorFromCharge(charge);
             particles.push(new Particle(pos,vel,mass, charge, radius, color));
         }
+
+        
         return particles;
     }
 

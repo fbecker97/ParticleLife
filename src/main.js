@@ -6,35 +6,33 @@ ctx.fillStyle = "black";
 ctx.fillRect(0,0,canvas.width, canvas.height);
 
 var particles = [];
-particles.push(...Particle.randomParticles(400,{x0:canvas.width/4,x1:canvas.width*3/4,y0:canvas.height/4,y1:canvas.height*3/4}, 0.5 ));
+particles.push(...Particle.randomParticles(500,{x0:canvas.width*1/5,x1:canvas.width*4/5,y0:canvas.height*1/5,y1:canvas.height*4/5}, 0.5 ));
 
 function update(progress) {
 	let nextParticles = []
     //apply Forces
     for(let i=0; i<particles.length;i++){
-        for(let j=0; j<particles.length;j++){
-            if(i!=j){
-                // Gravity and Coulomb
-                particles[i].applyForce(Physics.force(particles[i],particles[j]));
-                // Drag
-                particles[i].applyForce(Physics.drag(particles[i]));
-                // Constant Force
-                //particles[i].applyForce({x:0,y:1*particles[i].mass});
-                
-                //Collision
-                if(!particles[i].isAnnihilated && !particles[j].isAnnihilated && Physics.areColliding(particles[i],particles[j])){
-                	nextParticles.push(...Physics.resolveCollision(particles[i],particles[j]));
-                }
-                
+        for(let j=i+1; j<particles.length;j++){
+            // apply darticle forces on each other
+            Physics.applyForceBetween(particles[i],particles[j]);
+
+            //collision
+            if(!particles[i].isAnnihilated && !particles[j].isAnnihilated && Physics.areColliding(particles[i],particles[j])){
+            	nextParticles.push(...Physics.resolveCollision(particles[i],particles[j]));   
             }
         }
+        // apply drag
+        Physics.applyDrag(particles[i]);
+        // apply a constant Force
+        //particles[i].applyForce({x:0,y:1*particles[i].mass});
+        
         if(!particles[i].isAnnihilated) nextParticles.push(particles[i]);
     }
     //update Positions
     for(let i=0; i<particles.length;i++){
     	if(!particles[i].isAnnihilated){ 
     		
-    		particles[i].updatePosition(progress,{x0: 300, x1: canvas.width-300, y0: 100, y1: canvas.height-100, wrap: false });
+    		particles[i].updatePosition(progress,{x0: 0, x1: canvas.width, y0: 0, y1: canvas.height, wrap: false });
     	}   
     }
     //add new particles
@@ -47,7 +45,7 @@ function draw() {
     ctx.fillRect(0,0,canvas.width, canvas.height);
     //draw particles
     for(let i=0; i<particles.length;i++){
-        particles[i].render(ctx)
+        particles[i].render(ctx, drawAcc = true)
     }
 }
 
