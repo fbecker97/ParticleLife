@@ -49,7 +49,7 @@ class Physics{
     static randomForceMinR(num){
     	let m = []
     	for(let j=0;j<num;j++){
-    		m.push(Math.random()*MINR_RANGE+MINR_THRESHOLD)
+    		m.push(Math.random()*MINR_RANGE+MINR_LOWER)
     	}
     	return m
     }
@@ -57,24 +57,24 @@ class Physics{
     static randomForceMaxR(num){
     	let m = []
     	for(let j=0;j<num;j++){
-    		m.push(Math.random()*MAXR_RANGE+MAXR_THRESHOLD)
+    		m.push(Math.random()*MAXR_RANGE+MAXR_LOWER)
     	}
     	return m
     }
     
 }
-const MINR_RANGE = 3
-const MINR_THRESHOLD = 12
+const MINR_RANGE = 4
+const MINR_LOWER = 10
 
-const MAXR_RANGE = 5
-const MAXR_THRESHOLD = 30
+const MAXR_RANGE = 40
+const MAXR_LOWER= 16
 
 const PARTICLE_NUMBER = 300
 const COULOMB = 10;
 const STRONG_SMOOTH = 100000;
 const STRONG_MAX = 80000;
 const DRAG = 0.01;
-const TYPE_NUMBER = 4
+const TYPE_NUMBER = 10
 const TYPE_COLORS = Utils.randomColors(TYPE_NUMBER)
 const FORCE_MATRIX = Physics.randomForceMatrix(TYPE_NUMBER)
 const MINRS = Physics.randomForceMinR(TYPE_NUMBER)

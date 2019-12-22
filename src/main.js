@@ -9,7 +9,7 @@ ctx.fillRect(0,0,canvas.width, canvas.height);
 //Global
 STEPS_PER_FRAME = 4
 DELTATIME = 0.016
-CAGE_SIZE = 0.3
+CAGE_SIZE = 0.2
 WRAP = true
 SPACE_CAGE = {x0: canvas.width*CAGE_SIZE, x1: canvas.width*(1-CAGE_SIZE), y0: canvas.height*CAGE_SIZE, y1: canvas.height*(1-CAGE_SIZE), wrap: WRAP }
 
