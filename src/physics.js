@@ -4,17 +4,29 @@ class Physics{
     static applyForceBetween(p1,p2){
     	let diff = {x: p1.pos.x-p2.pos.x, y: p1.pos.y-p2.pos.y}
     	let dist = Math.max(Utils.getAbs(diff),0.01)
-    	let a1 = COULOMB*FORCE_MATRIX[p1.type][p2.type]
-    	let b1 = (MAXRS[p1.type]+MINRS[p1.type])/2
-    	let c1 = (MAXRS[p1.type]-MINRS[p1.type])/2
-    	let d1 =  -0.5*MINRS[p1.type] + Math.sqrt( MINRS[p1.type]*MINRS[p1.type]*0.25 + MINRS[p1.type]*STRONG_SMOOTH/STRONG_MAX)
-    	let force_12 = a1*(Math.max(0, 1 - Math.abs(dist-b1)/c1 )) - STRONG_SMOOTH*Math.max(0,1/(dist+d1)-1/(MINRS[p1.type]+d1) )/dist
     	
-    	let a2 = COULOMB*FORCE_MATRIX[p2.type][p1.type]
-    	let b2 = (MAXRS[p2.type]+MINRS[p2.type])/2
-    	let c2 = (MAXRS[p2.type]-MINRS[p2.type])/2
-    	let d2 =  -0.5*MINRS[p2.type] + Math.sqrt( MINRS[p2.type]*MINRS[p2.type]*0.25 + MINRS[p2.type]*STRONG_SMOOTH/STRONG_MAX)
-    	let force_21 = a2*(Math.max(0, 1 - Math.abs(dist-b2)/c2 )) - STRONG_SMOOTH*Math.max(0,1/(dist+d2)-1/(MINRS[p2.type]+d2) )/dist
+    	if(dist > MAXRS[p1.type] || dist > MAXRS[p2.type]) return
+    	
+    	let force_12 = 0
+    	if(dist > MINRS[p1.type]){
+    		let a1 = COULOMB*FORCE_MATRIX[p1.type][p2.type]
+        	let b1 = (MAXRS[p1.type]+MINRS[p1.type])/2
+        	let c1 = (MAXRS[p1.type]-MINRS[p1.type])/2
+        	force_12 = a1*(1 - Math.abs(dist-b1)/c1)/dist 
+    	} else {
+    		let d1 =  -0.5*MINRS[p1.type] + Math.sqrt( MINRS[p1.type]*MINRS[p1.type]*0.25 + MINRS[p1.type]*STRONG_SMOOTH/STRONG_MAX)
+    		force_12 = - STRONG_SMOOTH*(1/(dist+d1)-1/(MINRS[p1.type]+d1))/dist
+    	}
+    	let force_21 = 0
+    	if(dist > MINRS[p2.type]){
+    		let a2 = COULOMB*FORCE_MATRIX[p2.type][p1.type]
+        	let b2 = (MAXRS[p2.type]+MINRS[p2.type])/2
+        	let c2 = (MAXRS[p2.type]-MINRS[p2.type])/2
+        	force_21 = a2*(1 - Math.abs(dist-b2)/c2)/dist 
+    	} else {
+    		let d2 =  -0.5*MINRS[p2.type] + Math.sqrt( MINRS[p2.type]*MINRS[p2.type]*0.25 + MINRS[p2.type]*STRONG_SMOOTH/STRONG_MAX)
+    		force_21 = - STRONG_SMOOTH*(1/(dist+d2)-1/(MINRS[p2.type]+d2))/dist
+    	}
     	
     	p1.applyForce({x:-diff.x*force_21,y:-diff.y*force_21})
     	p2.applyForce({x:diff.x*force_12,y:diff.y*force_12})
@@ -40,7 +52,7 @@ class Physics{
     	for(let i=0;i<num;i++){
     		matrix[i] = new Array(num)
     		for(let j=0;j<num;j++){
-        		matrix[i][j] = (Math.random() > 0.5) ? 1:-1
+        		matrix[i][j] = (Math.random()*2-1)*20
         	}
     	}
     	return matrix
@@ -66,15 +78,15 @@ class Physics{
 const MINR_RANGE = 4
 const MINR_LOWER = 10
 
-const MAXR_RANGE = 40
+const MAXR_RANGE = 30
 const MAXR_LOWER= 16
 
-const PARTICLE_NUMBER = 300
-const COULOMB = 10;
+const PARTICLE_NUMBER = 500
+const COULOMB = 15;
 const STRONG_SMOOTH = 100000;
 const STRONG_MAX = 80000;
 const DRAG = 0.01;
-const TYPE_NUMBER = 10
+const TYPE_NUMBER = 5
 const TYPE_COLORS = Utils.randomColors(TYPE_NUMBER)
 const FORCE_MATRIX = Physics.randomForceMatrix(TYPE_NUMBER)
 const MINRS = Physics.randomForceMinR(TYPE_NUMBER)
