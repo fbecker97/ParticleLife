@@ -44,6 +44,7 @@ class Physics{
     
     static resolveCollision(p1, p2){
     	let result = []
+    	
     	return result;
     } 
     
@@ -81,11 +82,11 @@ const MINR_LOWER = 10
 const MAXR_RANGE = 30
 const MAXR_LOWER= 16
 
-const PARTICLE_NUMBER = 500
-const COULOMB = 15;
-const STRONG_SMOOTH = 100000;
+const PARTICLE_NUMBER = 400
+const COULOMB = 20;
+const STRONG_SMOOTH = 50000;
 const STRONG_MAX = 80000;
-const DRAG = 0.01;
+const DRAG = 0.005;
 const TYPE_NUMBER = 5
 const TYPE_COLORS = Utils.randomColors(TYPE_NUMBER)
 const FORCE_MATRIX = Physics.randomForceMatrix(TYPE_NUMBER)
