@@ -7,10 +7,10 @@ ctx.fillRect(0,0,canvas.width, canvas.height);
 
 
 //Global
-STEPS_PER_FRAME = 4
+STEPS_PER_FRAME = 3
 DELTATIME = 0.016
 CAGE_SIZE = 0.2
-WRAP = true
+WRAP = false
 SPACE_CAGE = {x0: canvas.width*CAGE_SIZE, x1: canvas.width*(1-CAGE_SIZE), y0: canvas.height*CAGE_SIZE, y1: canvas.height*(1-CAGE_SIZE), wrap: WRAP }
 
 var particles = [];
@@ -55,7 +55,7 @@ function draw() {
     ctx.fillStyle = "rgba(0,0,0,0.5)";
     ctx.fillRect(0,0,canvas.width, canvas.height);
     ctx.beginPath();
-    ctx.strokeStyle ="red"
+    ctx.strokeStyle ="white"
     ctx.rect(SPACE_CAGE.x0, SPACE_CAGE.y0, SPACE_CAGE.x1-SPACE_CAGE.x0,SPACE_CAGE.y1-SPACE_CAGE.y0);
     ctx.stroke();
     //draw particles
