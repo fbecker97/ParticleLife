@@ -5,15 +5,21 @@ const ctx = canvas.getContext("2d");
 ctx.fillStyle = "black";
 ctx.fillRect(0,0,canvas.width, canvas.height);
 
+
+//Global
+STEPS_PER_FRAME = 4
+DELTATIME = 0.016
+CAGE_SIZE = 0.3
+WRAP = true
+SPACE_CAGE = {x0: canvas.width*CAGE_SIZE, x1: canvas.width*(1-CAGE_SIZE), y0: canvas.height*CAGE_SIZE, y1: canvas.height*(1-CAGE_SIZE), wrap: WRAP }
+
 var particles = [];
-particles.push(...Particle.randomParticles(200,{x0:canvas.width*1/5,x1:canvas.width*4/5,y0:canvas.height*1/5,y1:canvas.height*4/5}, 0.5 ));
-var mass_sum = 0;
-var charge_mean = 0;
+particles.push(...Particle.randomParticles(PARTICLE_NUMBER,SPACE_CAGE ));
 
 function update(progress) {
+	DELTATIME = progress
 	let nextParticles = []
-	mass_sum = 0;
-	charge_sum = 0;
+	
     //apply Forces
     for(let i=0; i<particles.length;i++){
         for(let j=i+1; j<particles.length;j++){
@@ -28,59 +34,44 @@ function update(progress) {
         // apply drag
         Physics.applyDrag(particles[i]);
         // apply a constant Force
-        //particles[i].applyForce({x:0,y:1*particles[i].mass});
+        // particles[i].applyForce({x:0,y:10*particles[i].mass});
         
-        //check spontanious splitUps
-        if(particles[i].isSplitUp()){
-        	nextParticles.push(...particles[i].splitUp());
-        }
-        //sum of mass and mean of charge
-        mass_sum += particles[i].mass;
-        charge_mean += particles[i].charge[0]+particles[i].charge[1]+particles[i].charge[2]
         
         if(!particles[i].isAnnihilated) nextParticles.push(particles[i]);
     }
-    charge_mean = charge_mean/particles.length
     
-    //update Positions
+    //update positions
     for(let i=0; i<particles.length;i++){
     	if(!particles[i].isAnnihilated){ 
-    		
-    		particles[i].updatePosition(progress,{x0: 300, x1: canvas.width-300, y0: 200, y1: canvas.height-200, wrap: false });
+    		particles[i].updatePosition();
     	}   
     }
-    //add new particles
+    //update set of particles
     particles = nextParticles
 }
 
 function draw() {
     //clear canvas
-    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
     ctx.fillRect(0,0,canvas.width, canvas.height);
     ctx.beginPath();
     ctx.strokeStyle ="red"
-    ctx.rect(300, 200, canvas.width-600, canvas.height-400);
+    ctx.rect(SPACE_CAGE.x0, SPACE_CAGE.y0, SPACE_CAGE.x1-SPACE_CAGE.x0,SPACE_CAGE.y1-SPACE_CAGE.y0);
     ctx.stroke();
     //draw particles
     for(let i=0; i<particles.length;i++){
-        particles[i].render(ctx, drawAcc = false)
+        particles[i].draw( drawAcc = false)
     }
-    ctx.font = "30px Arial";
-    ctx.fillText(mass_sum.toFixed(1), 10, 50); 
-    ctx.fillText(charge_mean.toFixed(1), 10, 100); 
-    ctx.fillText(particles.length, 10, 150); 
-}
-
-function computeUI(){
-    
 }
 
 function loop(timestamp) {
     var progress = timestamp - lastRender
-
-    update(progress/1000)
+    
+    for(let i=0; i< STEPS_PER_FRAME; i++){
+    	update(progress/(1000*STEPS_PER_FRAME))
+    }
+    
     draw()
-    computeUI()
 
     lastRender = timestamp
     window.requestAnimationFrame(loop)

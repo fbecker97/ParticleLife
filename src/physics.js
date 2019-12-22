@@ -1,27 +1,28 @@
-const COULOMB = [30,20,10];
-const DRAG = 0.006;
-const CHARGE_MAX = 30;
-const MERGE_PROB = 0.01;
-const MERGE_MAXR = 20;
-const SPLIT_PROB = 0.0001;
-const SPLIT_MINR = 8;
-
 
 class Physics{
           
     static applyForceBetween(p1,p2){
     	let diff = {x: p1.pos.x-p2.pos.x, y: p1.pos.y-p2.pos.y}
-    	let dist = Math.max(Utils.getAbs(diff), p1.radius+p2.radius);
-    	let dir = {x: diff.x/dist, y: diff.y/dist}
+    	let dist = Math.max(Utils.getAbs(diff),0.01)
+    	let a1 = COULOMB*FORCE_MATRIX[p1.type][p2.type]
+    	let b1 = (MAXRS[p1.type]+MINRS[p1.type])/2
+    	let c1 = (MAXRS[p1.type]-MINRS[p1.type])/2
+    	let d1 =  -0.5*MINRS[p1.type] + Math.sqrt( MINRS[p1.type]*MINRS[p1.type]*0.25 + MINRS[p1.type]*STRONG_SMOOTH/STRONG_MAX)
+    	let force_12 = a1*(Math.max(0, 1 - Math.abs(dist-b1)/c1 )) - STRONG_SMOOTH*Math.max(0,1/(dist+d1)-1/(MINRS[p1.type]+d1) )/dist
     	
-    	let force_factor = (COULOMB[0]*p1.charge[0]*p2.charge[0]+COULOMB[1]*p1.charge[1]*p2.charge[1]+COULOMB[2]*p1.charge[2]*p2.charge[2])/(dist*dist)
+    	let a2 = COULOMB*FORCE_MATRIX[p2.type][p1.type]
+    	let b2 = (MAXRS[p2.type]+MINRS[p2.type])/2
+    	let c2 = (MAXRS[p2.type]-MINRS[p2.type])/2
+    	let d2 =  -0.5*MINRS[p2.type] + Math.sqrt( MINRS[p2.type]*MINRS[p2.type]*0.25 + MINRS[p2.type]*STRONG_SMOOTH/STRONG_MAX)
+    	let force_21 = a2*(Math.max(0, 1 - Math.abs(dist-b2)/c2 )) - STRONG_SMOOTH*Math.max(0,1/(dist+d2)-1/(MINRS[p2.type]+d2) )/dist
     	
-    	p1.applyForce({x: dir.x*(force_factor), y: dir.y*(force_factor)})
-    	p2.applyForce({x: -dir.x*(force_factor), y: -dir.y*(force_factor)})
+    	p1.applyForce({x:-diff.x*force_21,y:-diff.y*force_21})
+    	p2.applyForce({x:diff.x*force_12,y:diff.y*force_12})
     }
     
     static applyDrag(p1){
-        p1.applyForce({x: -p1.vel.x*DRAG*p1.radius, y: -p1.vel.y*DRAG*p1.radius });
+    	let vel_abs = Utils.getAbs(p1.vel)
+        p1.applyForce({x: -p1.vel.x*DRAG*p1.radius*vel_abs, y: -p1.vel.y*DRAG*p1.radius*vel_abs });
     }
     
     static areColliding(p1, p2){
@@ -31,31 +32,53 @@ class Physics{
     
     static resolveCollision(p1, p2){
     	let result = []
-    	
-    	
-    	if(Math.random() < MERGE_PROB  && p1.radius < MERGE_MAXR && p2.radius < MERGE_MAXR){
-    		p1.isAnnihilated = true
-        	p2.isAnnihilated = true
-        	let pos = {x: (p1.pos.x+p2.pos.x)/2, y: (p1.pos.y+p2.pos.y)/2}
-        	let vel = {x: (p1.mass*p1.vel.x+p2.mass*p2.vel.x)/(p1.mass+p2.mass), y: (p1.mass*p1.vel.y+p2.mass*p2.vel.y)/(p1.mass+p2.mass)}
-        	let mass = p1.mass+p2.mass
-        	let radius = Math.sqrt(p1.radius*p1.radius+p2.radius*p2.radius)
-        	let charge = [0,0,0]
-        	for(let i=0;i<3;i++) charge[i] = (p1.charge[i]+p2.charge[i])/(1+(p1.charge[i]*p2.charge[i])/(CHARGE_MAX*CHARGE_MAX))
-        	let color = Physics.getColorFromCharge(charge);
-        	result.push(new Particle(pos,vel,mass, charge, radius, color));
-    	}
     	return result;
+    } 
+    
+    static randomForceMatrix(num){
+    	let matrix = new Array(num)
+    	for(let i=0;i<num;i++){
+    		matrix[i] = new Array(num)
+    		for(let j=0;j<num;j++){
+        		matrix[i][j] = (Math.random() > 0.5) ? 1:-1
+        	}
+    	}
+    	return matrix
     }
     
-    static getColorFromCharge(charge){
-        let r = 127 + (charge[0]/CHARGE_MAX)*127;
-        let g = 127 + (charge[1]/CHARGE_MAX)*127;
-        let b = 127 + (charge[2]/CHARGE_MAX)*127;
-        return "rgb("+r.toString()+","+g.toString()+","+b.toString()+")";
+    static randomForceMinR(num){
+    	let m = []
+    	for(let j=0;j<num;j++){
+    		m.push(Math.random()*MINR_RANGE+MINR_THRESHOLD)
+    	}
+    	return m
+    }
+    
+    static randomForceMaxR(num){
+    	let m = []
+    	for(let j=0;j<num;j++){
+    		m.push(Math.random()*MAXR_RANGE+MAXR_THRESHOLD)
+    	}
+    	return m
     }
     
 }
+const MINR_RANGE = 3
+const MINR_THRESHOLD = 12
+
+const MAXR_RANGE = 5
+const MAXR_THRESHOLD = 30
+
+const PARTICLE_NUMBER = 300
+const COULOMB = 10;
+const STRONG_SMOOTH = 100000;
+const STRONG_MAX = 80000;
+const DRAG = 0.01;
+const TYPE_NUMBER = 4
+const TYPE_COLORS = Utils.randomColors(TYPE_NUMBER)
+const FORCE_MATRIX = Physics.randomForceMatrix(TYPE_NUMBER)
+const MINRS = Physics.randomForceMinR(TYPE_NUMBER)
+const MAXRS = Physics.randomForceMaxR(TYPE_NUMBER)
 
 
 
