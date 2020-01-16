@@ -1,3 +1,3 @@
 # ParticleLife
 
-Test
+Little Project inspired by Jeffrey Ventrellas "Clusters"
